@@ -1,0 +1,43 @@
+<!-- # Dylan Kenneth Eliot -->
+
+<!-- # bridging of runtime via front-end, because doing it to the backend is just gross and you should never expose that...
+
+so instead, this bridge branch exists.. -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pyodide FS + Brython (Correct Async)</title>
+    <script src="/pyodide/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.11.0/brython.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.11.0/brython_stdlib.js"></script>
+</head>
+<body onload="brython()">
+    <h1>🔗 Brython ↔ Pyodide FS Bridge</h1>
+    <p>Reading from Pyodide virtual FS via Brython:</p>
+    <pre id="result">[loading FS]</pre>
+
+    <script type="text/python">
+from browser import document, window, aio
+
+async def main():
+    pyodide = await window.loadPyodide({"indexURL":"/pyodide/"})
+
+    # Write to Pyodide FS
+    pyodide.runPython('''
+with open("/hello_from_pyodide.txt", "w") as f:
+    f.write("🚀 Hello! This is a file written by Pyodide.")
+''')
+
+    # Read it using Emscripten FS via Brython
+    fs = pyodide.FS
+    content = fs.readFile("/hello_from_pyodide.txt", { "encoding": "utf8" })
+
+    # Display in browser
+    document["result"].text = content
+
+# Correct async call using browser.aio
+aio.run(main())
+    </script>
+</body>
+</html>
